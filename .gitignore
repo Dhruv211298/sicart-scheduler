@@ -1,0 +1,7 @@
+# Temporary scratch files and test artifacts
+scratch/
+output.pdf
+*.docx
+.DS_Store
+Thumbs.db
+SICART-Scheduler/

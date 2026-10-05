@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SICART - Work Distribution Scheduling System</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="app-container">
+        
+
+
+        <!-- ==========================================
+             APPLICATION HEADER (Screen view)
+             ========================================== -->
+        <header class="app-header no-print">
+            <div class="header-inner">
+                <div class="brand-wrapper">
+                    <img src="sicart_logo.png" alt="SICART Logo" class="brand-logo-img">
+                    <div class="brand-text">
+                        <h1>Sophisticated Instrumentation Centre for Applied Research &amp; Testing (SICART)</h1>
+                        <h2>Work Distribution Scheduling System</h2>
+                    </div>
+                </div>
+                <div class="header-status-area">
+                    <div id="conflictAlert" class="conflict-banner clean" title="Click to view schedule compliance and conflict warnings">
+                        <span class="conflict-icon">🛡️</span>
+                        <span id="conflictCount">Checking rules...</span>
+                    </div>
+                    <span id="finalBadge" class="final-schedule-badge" style="display:none;">★ Final Approved</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- ==========================================
+             NAVIGATION TABS
+             ========================================== -->
+        <nav class="app-nav no-print">
+            <div class="nav-inner">
+                <a href="#schedule" class="nav-tab active" data-tab="schedule">
+                    <span class="tab-icon">📅</span> Schedule Board
+                </a>
+                <a href="#employees" class="nav-tab" data-tab="employees">
+                    <span class="tab-icon">👥</span> Employees
+                </a>
+                <a href="#instruments" class="nav-tab" data-tab="instruments">
+                    <span class="tab-icon">🔬</span> Instruments &amp; Labs
+                </a>
+                <a href="#qaqc" class="nav-tab" data-tab="qaqc">
+                    <span class="tab-icon">📋</span> QA/QC &amp; Tasks
+                </a>
+                <a href="#mapping" class="nav-tab" data-tab="mapping">
+                    <span class="tab-icon">🔗</span> Staff Authorization Matrix
+                </a>
+                <a href="#holidays" class="nav-tab" data-tab="holidays">
+                    <span class="tab-icon">🏖️</span> Holidays &amp; Sundays
+                </a>
+                <a href="#backup" class="nav-tab" data-tab="backup">
+                    <span class="tab-icon">⚙️</span> Backup &amp; Settings
+                </a>
+            </div>
+        </nav>
+
+        <!-- ==========================================
+             MAIN CONTENT PANES
+             ========================================== -->
+        <main class="app-main">
+
+            <!-- TAB 1: SCHEDULE BOARD -->
+            <section id="tab-schedule" class="tab-pane active">
+
+                <!-- ==========================================
+                     OFFICIAL PRINT / PDF HEADER (Visible in Print/PDF)
+                     ========================================== -->
+                <div class="print-only print-header">
+                    <div class="print-header-content">
+                        <img src="sicart_logo.png" alt="SICART Logo" class="print-logo-img">
+                        <div class="print-header-titles">
+                            <div class="print-org-title">Sophisticated Instrumentation Centre for Applied Research &amp; Testing (SICART)</div>
+                            <div class="print-schedule-subtitle" id="printScheduleSubtitle">Work Distribution Schedule, Month: October-2026</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Primary Action Toolbar -->
+                <div class="dashboard-toolbar no-print">
+                    <div class="toolbar-group">
+                        <button id="btnPrevMonth" class="btn btn-outline btn-sm" title="Previous Month">◀</button>
+                        <div class="month-year-picker">
+                            <span class="picker-label">Month:</span>
+                            <select id="monthSelect" class="form-select"></select>
+                            <span class="picker-label">Year:</span>
+                            <select id="yearSelect" class="form-select"></select>
+                        </div>
+                        <button id="btnNextMonth" class="btn btn-outline btn-sm" title="Next Month">▶</button>
+                    </div>
+
+                    <div class="toolbar-group">
+                        <button id="btnAutoGenerate" class="btn btn-primary" title="Rule-based distribution respecting employee authorizations and workload">
+                            ⚡ Auto Generate Schedule
+                        </button>
+                        <button id="btnSaveSchedule" class="btn btn-success" title="Save monthly schedule to browser storage">
+                            💾 Save Schedule
+                        </button>
+                        <button id="btnResetSchedule" class="btn btn-danger-outline" title="Clear assignments for current month">
+                            🔄 Reset
+                        </button>
+                        <button id="btnPrintSchedule" class="btn btn-warning" title="Open A4 Landscape print format (with page numbers on all pages)">
+                            🖨️ Print / Save PDF
+                        </button>
+                    </div>
+
+                    <div class="toolbar-group">
+                        <div class="month-year-picker">
+                            <span class="picker-label">Version:</span>
+                            <select id="versionSelect" class="form-select"></select>
+                            <button id="btnSaveVersion" class="btn btn-outline btn-sm" title="Save current schedule as a new named version">Save Version</button>
+                            <button id="btnMarkFinal" class="btn btn-success-outline btn-sm" title="Mark this schedule as Final Approved">Mark Final</button>
+                        </div>
+                        <button id="btnExportCSV" class="btn btn-outline" title="Export current month table to spreadsheet CSV">
+                            📊 Export CSV
+                        </button>
+                        <button id="btnExportJSON" class="btn btn-outline" title="Export entire system database to JSON">
+                            📥 Backup JSON
+                        </button>
+                        <button id="btnImportJSON" class="btn btn-outline" title="Restore system from JSON backup">
+                            📤 Restore
+                        </button>
+                        <input type="file" id="fileImportInput" accept=".json" style="display: none;">
+                    </div>
+                </div>
+
+                <!-- Secondary Filter & Search Toolbar -->
+                <div class="filter-toolbar no-print">
+                    <div class="filter-item">
+                        <span class="filter-label">🔍 Search Employee:</span>
+                        <input type="text" id="searchEmployeeInput" class="form-control form-control-sm" placeholder="Filter employee columns...">
+                    </div>
+                    <div class="filter-item">
+                        <span class="filter-label">🎯 Highlight Activity:</span>
+                        <select id="filterActivitySelect" class="form-select form-select-sm"></select>
+                    </div>
+                    <div class="text-muted text-xs">
+                        Tip: Click any cell on a working day to assign or modify activities with indicators (<b>*</b>, <b>✓</b>, <b>✓✓</b>).
+                    </div>
+                </div>
+
+                <!-- QA/QC Regulatory Compliance Notice -->
+                <div class="qaqc-policy-banner no-print">
+                    <span class="policy-badge">⚖️ QA/QC Policy</span>
+                    <span>1 person active on QA/QC per working day (Day 1: QC, Day 2: QA). Per person only one responsibility.</span>
+                </div>
+
+                <!-- Live Schedule Statistics Panel -->
+                <div id="scheduleStats" class="stats-container no-print"></div>
+
+                <!-- Main Schedule Matrix Table -->
+                <div class="schedule-table-wrapper">
+                    <table class="schedule-table" id="scheduleTable">
+                        <thead id="scheduleTableHead"></thead>
+                        <tbody id="scheduleTableBody"></tbody>
+                    </table>
+                </div>
+
+                <!-- Official Institutional Schedule Legend & Absentee Policy (SICART DOCX Reference) -->
+                <div class="schedule-legend-container">
+                    <table class="schedule-legend-table">
+                        <tbody>
+                            <tr>
+                                <td class="legend-symbol-cell">✓</td>
+                                <td class="legend-text-cell">
+                                    <div class="legend-text-p1"><strong>1)</strong> QC (Sample Warden) related activities such as Test Request Review, Sample Distribution, Tray Preparation for Sample distribution on the next day.</div>
+                                    <div class="legend-text-p2"><strong>2)</strong> 1st Priority shall be given to QC related work. Additional Time, if available, it should be utilized for alloted instrument related testing or training.</div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="legend-symbol-cell">✓✓</td>
+                                <td class="legend-text-cell">
+                                    <div class="legend-text-p1"><strong>1)</strong> QA related activities such as Test Report Preparation, Sample Retention etc.</div>
+                                    <div class="legend-text-p2"><strong>2)</strong> 1st Priority shall be given to QA related work. Additional Time, if available, it should be utilized for alloted instrument related testing or training.</div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="legend-symbol-cell" style="font-size: 15px; font-weight: 800;">*</td>
+                                <td class="legend-text-cell">
+                                    If samples are not available for analysis in the laboratory, respective staff member will support Q.A/Q.C activities or shall undertake training.
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="legend-symbol-cell legend-absentee-label">Back up plan for Absentees:</td>
+                                <td class="legend-text-cell">
+                                    If any staff member is Absent or on Leave, the next available staff member will perform activity wrt " <strong>✓</strong> " or " <strong>✓✓</strong> " or both.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="schedule-signoff-bar">
+                        <div class="signoff-item">
+                            <span class="signoff-label">Prepared by:</span>
+                            <span class="signoff-value" id="schedulePreparedBy">Q.C. Manager</span>
+                        </div>
+                        <div class="signoff-item">
+                            <span class="signoff-label">Date:</span>
+                            <span class="signoff-value" id="scheduleSignDate">30/09/2026</span>
+                        </div>
+                        <div class="signoff-item">
+                            <span class="signoff-label">Approved By:</span>
+                            <span class="signoff-value" id="scheduleApprovedBy">Director, SICART</span>
+                        </div>
+                    </div>
+                </div>
+
+
+
+            </section>
+
+            <!-- TAB 2: EMPLOYEE MANAGEMENT -->
+            <section id="tab-employees" class="tab-pane">
+                <div class="panel-card">
+                    <div class="panel-header">
+                        <div>
+                            <h3>Employee Directory &amp; Staff Management</h3>
+                            <p class="text-muted text-sm">Add, update, reorder and activate technical and scientific personnel.</p>
+                        </div>
+                    </div>
+                    <div id="employeeListContainer"></div>
+                </div>
+            </section>
+
+            <!-- TAB 3: INSTRUMENTS & TECHNICAL ACTIVITIES -->
+            <section id="tab-instruments" class="tab-pane">
+                <div class="panel-card">
+                    <div class="panel-header">
+                        <div>
+                            <h3>Instruments &amp; Technical Laboratories</h3>
+                            <p class="text-muted text-sm">Manage sophisticated instrumentation (UV, FTIR, GCMS, XRD, MASS, etc.)</p>
+                        </div>
+                    </div>
+                    <div id="instrumentListContainer"></div>
+                </div>
+            </section>
+
+            <!-- TAB 4: QA/QC & ADMINISTRATIVE TASKS -->
+            <section id="tab-qaqc" class="tab-pane">
+                <div class="panel-card">
+                    <div class="panel-header">
+                        <div>
+                            <h3>QA/QC, Environmental Audit &amp; Training Tasks</h3>
+                            <p class="text-muted text-sm">Configure quality assurance, environmental compliance, training and admin activities.</p>
+                        </div>
+                    </div>
+
+                    <!-- Policy Guidelines Card -->
+                    <div style="background: linear-gradient(135deg, #faf5ff 0%, #fdf4ff 100%); border: 1px solid #ddd6fe; border-left: 4px solid var(--cat-qa); border-radius: var(--border-radius); padding: 12px 16px; margin-bottom: 16px;">
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                            <span style="font-size: 1.2rem;">⚖️</span>
+                            <strong style="color: #581c87; font-size: 13.5px;">QA &amp; QC Scheduling Policy (Strict Laboratory Compliance)</strong>
+                        </div>
+                        <ul style="margin: 0; padding-left: 20px; font-size: 12.5px; color: #4c1d95; line-height: 1.6;">
+                            <li><strong>Single Responsibility:</strong> Personnel assigned to QA or QC on any working day must have only one responsibility (no secondary instrument or duty).</li>
+                            <li><strong>Consecutive QC &rarr; QA Cycle:</strong> If an officer is assigned <em>QC activity</em> on a working day, they must be assigned <em>QA activity</em> on the subsequent working day.</li>
+                            <li><strong>Single Active Officer:</strong> Across the entire laboratory, exactly one officer is active on QA/QC duty on any given working day.</li>
+                        </ul>
+                    </div>
+
+                    <div id="qaqcListContainer"></div>
+                </div>
+            </section>
+
+            <!-- TAB 5: STAFF AUTHORIZATION MAPPING -->
+            <section id="tab-mapping" class="tab-pane">
+                <div class="panel-card">
+                    <div class="panel-header">
+                        <div>
+                            <h3>Staff Authorization &amp; Instrument Mapping</h3>
+                            <p class="text-muted text-sm">Define authorized instruments and fixed assignments per employee.</p>
+                        </div>
+                    </div>
+                    <div id="mappingContainer"></div>
+                </div>
+            </section>
+
+            <!-- TAB 6: HOLIDAY & SUNDAYS -->
+            <section id="tab-holidays" class="tab-pane">
+                <div class="panel-card">
+                    <div class="panel-header">
+                        <div>
+                            <h3>Holiday &amp; Weekly Off Calendar</h3>
+                            <p class="text-muted text-sm">Manage mandatory Sundays and public/institutional holidays.</p>
+                        </div>
+                    </div>
+                    <div id="holidayContainer"></div>
+                </div>
+            </section>
+
+            <!-- TAB 7: BACKUP & SYSTEM SETTINGS -->
+            <section id="tab-backup" class="tab-pane">
+                <div id="backupSettingsContainer"></div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- ==========================================
+         MODAL 1: Cell Activity Edit Modal
+         ========================================== -->
+    <div id="cellEditModal" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <div class="modal-title-group">
+                    <h3 id="cellModalTitle">Assign Activities</h3>
+                    <div id="cellModalSubtitle" class="modal-subtitle"></div>
+                </div>
+                <button class="modal-close-btn" onclick="App.closeModal(document.getElementById('cellEditModal'))">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-search-wrapper">
+                    <input type="text" id="cellModalSearch" class="form-control" placeholder="Search activities..." oninput="App.renderCellModalActivityList(SchedulerEngine.getCellAssignments(App.editingCell?.dateISO, App.editingCell?.employeeId), App.editingCell?.employeeId, this.value)">
+                </div>
+                <div class="text-xs text-muted mb-2">
+                    ⚖️ <em>Policy: When selecting QA or QC, assign only one responsibility (no secondary tasks).</em>
+                </div>
+                <div id="cellModalActivitiesList" class="cell-modal-list"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="App.clearCellModal()">Clear Cell</button>
+                <button class="btn btn-outline" onclick="App.closeModal(document.getElementById('cellEditModal'))">Cancel</button>
+                <button class="btn btn-primary" onclick="App.saveCellModal()">Save Assignments</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         MODAL 2: Employee Add/Edit Modal
+         ========================================== -->
+    <div id="employeeModal" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <div class="modal-title-group">
+                    <h3 id="empModalTitle">Add Employee</h3>
+                </div>
+                <button class="modal-close-btn" onclick="App.closeModal(document.getElementById('employeeModal'))">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="empIdInput">
+                <div class="mb-3">
+                    <label class="form-label">Employee Full Name *</label>
+                    <input type="text" id="empNameInput" class="form-control" placeholder="e.g. Ms. Tulsiben">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Employee Code</label>
+                    <input type="text" id="empCodeInput" class="form-control" placeholder="e.g. EMP001">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Designation</label>
+                    <input type="text" id="empDesignationInput" class="form-control" placeholder="e.g. Senior Scientific Officer">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Department</label>
+                    <input type="text" id="empDeptInput" class="form-control" placeholder="e.g. Analytical Lab">
+                </div>
+                <div class="mb-3">
+                    <label class="custom-checkbox">
+                        <input type="checkbox" id="empActiveCheck" checked>
+                        <span class="checkmark"></span>
+                        <span style="font-weight: 600; margin-left: 6px;">Active Employee (Include in Monthly Schedule)</span>
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="App.closeModal(document.getElementById('employeeModal'))">Cancel</button>
+                <button class="btn btn-primary" onclick="App.saveEmployeeModal()">Save Employee</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         MODAL 3: Activity Add/Edit Modal
+         ========================================== -->
+    <div id="activityModal" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <div class="modal-title-group">
+                    <h3 id="actModalTitle">Add Activity / Instrument</h3>
+                </div>
+                <button class="modal-close-btn" onclick="App.closeModal(document.getElementById('activityModal'))">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="actIdInput">
+                <div class="mb-3">
+                    <label class="form-label">Activity / Instrument Name *</label>
+                    <input type="text" id="actNameInput" class="form-control" placeholder="e.g. UV/FTIR/HPTLC">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Activity Code</label>
+                    <input type="text" id="actCodeInput" class="form-control" placeholder="e.g. ACT001">
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Category</label>
+                        <select id="actCategorySelect" class="form-select"></select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Priority</label>
+                        <select id="actPrioritySelect" class="form-select">
+                            <option value="High">High Priority</option>
+                            <option value="Medium">Medium Priority</option>
+                            <option value="Low">Low Priority</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Description / Scope</label>
+                    <textarea id="actDescInput" class="form-control" rows="2" placeholder="Brief technical description..."></textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="custom-checkbox">
+                        <input type="checkbox" id="actActiveCheck" checked>
+                        <span class="checkmark"></span>
+                        <span style="font-weight: 600; margin-left: 6px;">Active Activity</span>
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="App.closeModal(document.getElementById('activityModal'))">Cancel</button>
+                <button class="btn btn-primary" onclick="App.saveActivityModal()">Save Activity</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         MODAL 4: Conflict Resolution Modal
+         ========================================== -->
+    <div id="conflictModal" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <div class="modal-title-group">
+                    <h3>Schedule Audit &amp; Conflicts</h3>
+                    <div class="modal-subtitle">Real-time validation against laboratory scheduling rules</div>
+                </div>
+                <button class="modal-close-btn" onclick="App.closeModal(document.getElementById('conflictModal'))">&times;</button>
+            </div>
+            <div class="modal-body" id="conflictModalBody"></div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="App.closeModal(document.getElementById('conflictModal'))">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         MODAL 5: Schedule Version Modal
+         ========================================== -->
+    <div id="versionModal" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <div class="modal-title-group">
+                    <h3>Save Schedule Version</h3>
+                    <div class="modal-subtitle">Create a snapshot of current schedule</div>
+                </div>
+                <button class="modal-close-btn" onclick="App.closeModal(document.getElementById('versionModal'))">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Version Name / Label *</label>
+                    <input type="text" id="versionNameInput" class="form-control" placeholder="e.g. September Revision 2">
+                </div>
+                <div class="mb-3">
+                    <label class="custom-checkbox">
+                        <input type="checkbox" id="versionIsFinalCheck">
+                        <span class="checkmark"></span>
+                        <span style="font-weight: 600; margin-left: 6px;">Mark as Final Approved Schedule</span>
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="App.closeModal(document.getElementById('versionModal'))">Cancel</button>
+                <button class="btn btn-primary" onclick="App.saveNewVersion()">Save Version</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Popup -->
+    <div id="appToast" class="app-toast"></div>
+
+    <!-- ==========================================
+         JAVASCRIPT MODULE SCRIPTS (Strict Offline)
+         ========================================== -->
+    <script src="js/storage.js"></script>
+    <script src="js/calendar.js"></script>
+    <script src="js/employees.js"></script>
+    <script src="js/activities.js"></script>
+    <script src="js/holidays.js"></script>
+    <script src="js/scheduler.js"></script>
+    <script src="js/validation.js"></script>
+    <script src="js/export.js"></script>
+    <script src="js/print.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

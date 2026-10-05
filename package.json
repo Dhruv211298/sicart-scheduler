@@ -1,0 +1,18 @@
+{
+  "name": "sicart-schedule-maker",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SICART Work Distribution Scheduling System - Sophisticated Instrumentation Centre for Applied Research & Testing",
+  "scripts": {
+    "start": "npx serve ."
+  },
+  "keywords": [
+    "sicart",
+    "scheduler",
+    "laboratory",
+    "qa-qc",
+    "work-distribution"
+  ],
+  "author": "SICART",
+  "license": "MIT"
+}
